@@ -29,6 +29,21 @@ export {
   getSafetyRatingLabel,
 } from './utils/safetyScore';
 
+// Export elevation utilities
+export {
+  calculateElevationBands,
+  elevationToPressure,
+  getNearestPressureLevel,
+  getPressureLevelIndex,
+  pressureToElevation,
+  formatElevationBandLabel,
+  isElevationCritical,
+  getElevationEmoji,
+  getWeatherAtElevation,
+} from './utils/elevation';
+
+export type { ElevationBand } from './utils/elevation';
+
 // Export featured peaks data
 import FEATURED_PEAKS_DATA from './data/featuredPeaks.json';
 import type { FeaturedPeak } from './types';
