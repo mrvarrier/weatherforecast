@@ -127,10 +127,10 @@ export class WeatherService {
       ].join(',');
 
       const pressureLevels = '200,300,400,500,600,700,800,850,925,1000';
-      // Note: Pressure level params available for future use
-      // const pressureLevelParams = 'temperature,windspeed,winddirection,geopotential_height,relativehumidity,cloudcover';
+      const pressureLevelParams =
+        'temperature,windspeed,winddirection,geopotential_height,relativehumidity,cloudcover';
 
-      const url = `${baseUrl}?latitude=${latitude}&longitude=${longitude}&hourly=${hourlyParams}&models=${model}&forecast_days=${forecastDays}&timezone=auto`;
+      const url = `${baseUrl}?latitude=${latitude}&longitude=${longitude}&hourly=${hourlyParams}&pressure_level=${pressureLevels}&pressure_level_variables=${pressureLevelParams}&models=${model}&forecast_days=${forecastDays}&timezone=auto`;
 
       const response = await fetch(url);
       if (!response.ok) {
@@ -148,12 +148,90 @@ export class WeatherService {
         pressure_levels: {
           levels: pressureLevels.split(',').map(Number),
           data: {
-            temperature: [],
-            windspeed: [],
-            winddirection: [],
-            geopotential_height: [],
-            relativehumidity: [],
-            cloudcover: [],
+            temperature: data.pressure_level?.temperature_200hpa
+              ? [
+                  data.pressure_level.temperature_200hpa || [],
+                  data.pressure_level.temperature_300hpa || [],
+                  data.pressure_level.temperature_400hpa || [],
+                  data.pressure_level.temperature_500hpa || [],
+                  data.pressure_level.temperature_600hpa || [],
+                  data.pressure_level.temperature_700hpa || [],
+                  data.pressure_level.temperature_800hpa || [],
+                  data.pressure_level.temperature_850hpa || [],
+                  data.pressure_level.temperature_925hpa || [],
+                  data.pressure_level.temperature_1000hpa || [],
+                ]
+              : [],
+            windspeed: data.pressure_level?.windspeed_200hpa
+              ? [
+                  data.pressure_level.windspeed_200hpa || [],
+                  data.pressure_level.windspeed_300hpa || [],
+                  data.pressure_level.windspeed_400hpa || [],
+                  data.pressure_level.windspeed_500hpa || [],
+                  data.pressure_level.windspeed_600hpa || [],
+                  data.pressure_level.windspeed_700hpa || [],
+                  data.pressure_level.windspeed_800hpa || [],
+                  data.pressure_level.windspeed_850hpa || [],
+                  data.pressure_level.windspeed_925hpa || [],
+                  data.pressure_level.windspeed_1000hpa || [],
+                ]
+              : [],
+            winddirection: data.pressure_level?.winddirection_200hpa
+              ? [
+                  data.pressure_level.winddirection_200hpa || [],
+                  data.pressure_level.winddirection_300hpa || [],
+                  data.pressure_level.winddirection_400hpa || [],
+                  data.pressure_level.winddirection_500hpa || [],
+                  data.pressure_level.winddirection_600hpa || [],
+                  data.pressure_level.winddirection_700hpa || [],
+                  data.pressure_level.winddirection_800hpa || [],
+                  data.pressure_level.winddirection_850hpa || [],
+                  data.pressure_level.winddirection_925hpa || [],
+                  data.pressure_level.winddirection_1000hpa || [],
+                ]
+              : [],
+            geopotential_height: data.pressure_level?.geopotential_height_200hpa
+              ? [
+                  data.pressure_level.geopotential_height_200hpa || [],
+                  data.pressure_level.geopotential_height_300hpa || [],
+                  data.pressure_level.geopotential_height_400hpa || [],
+                  data.pressure_level.geopotential_height_500hpa || [],
+                  data.pressure_level.geopotential_height_600hpa || [],
+                  data.pressure_level.geopotential_height_700hpa || [],
+                  data.pressure_level.geopotential_height_800hpa || [],
+                  data.pressure_level.geopotential_height_850hpa || [],
+                  data.pressure_level.geopotential_height_925hpa || [],
+                  data.pressure_level.geopotential_height_1000hpa || [],
+                ]
+              : [],
+            relativehumidity: data.pressure_level?.relativehumidity_200hpa
+              ? [
+                  data.pressure_level.relativehumidity_200hpa || [],
+                  data.pressure_level.relativehumidity_300hpa || [],
+                  data.pressure_level.relativehumidity_400hpa || [],
+                  data.pressure_level.relativehumidity_500hpa || [],
+                  data.pressure_level.relativehumidity_600hpa || [],
+                  data.pressure_level.relativehumidity_700hpa || [],
+                  data.pressure_level.relativehumidity_800hpa || [],
+                  data.pressure_level.relativehumidity_850hpa || [],
+                  data.pressure_level.relativehumidity_925hpa || [],
+                  data.pressure_level.relativehumidity_1000hpa || [],
+                ]
+              : [],
+            cloudcover: data.pressure_level?.cloudcover_200hpa
+              ? [
+                  data.pressure_level.cloudcover_200hpa || [],
+                  data.pressure_level.cloudcover_300hpa || [],
+                  data.pressure_level.cloudcover_400hpa || [],
+                  data.pressure_level.cloudcover_500hpa || [],
+                  data.pressure_level.cloudcover_600hpa || [],
+                  data.pressure_level.cloudcover_700hpa || [],
+                  data.pressure_level.cloudcover_800hpa || [],
+                  data.pressure_level.cloudcover_850hpa || [],
+                  data.pressure_level.cloudcover_925hpa || [],
+                  data.pressure_level.cloudcover_1000hpa || [],
+                ]
+              : [],
           },
         },
       };
