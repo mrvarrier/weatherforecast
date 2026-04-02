@@ -118,8 +118,8 @@ export function getTimePeriodName(hour: number): 'AM' | 'PM' | 'night' {
  * Simplified calculation - for production use a library like suncalc
  */
 export function calculateSunTimes(
-  latitude: number,
-  longitude: number,
+  _latitude: number,
+  _longitude: number,
   date: Date
 ): { sunrise: string; sunset: string } {
   // This is a placeholder - in production, use proper astronomical calculations
