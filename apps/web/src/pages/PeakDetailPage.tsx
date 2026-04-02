@@ -37,9 +37,11 @@ export default function PeakDetailPage() {
       try {
         setLoading(true);
         setError(null);
+        // ECMWF free tier supports max 10 days, best_match supports 16
+        const maxDays = weatherModel === 'ecmwf_ifs04' ? 10 : 16;
         const data = await weatherService.fetchForecast(peak.latitude, peak.longitude, {
           model: weatherModel,
-          forecastDays: 16,
+          forecastDays: maxDays,
         });
         setForecast(data);
       } catch (err) {

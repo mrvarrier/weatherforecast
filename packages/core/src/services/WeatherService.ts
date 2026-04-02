@@ -130,14 +130,31 @@ export class WeatherService {
       const pressureLevelParams =
         'temperature,windspeed,winddirection,geopotential_height,relativehumidity,cloudcover';
 
-      const url = `${baseUrl}?latitude=${latitude}&longitude=${longitude}&hourly=${hourlyParams}&pressure_level=${pressureLevels}&pressure_level_variables=${pressureLevelParams}&models=${model}&forecast_days=${forecastDays}&timezone=auto`;
+      // ECMWF endpoint doesn't support pressure_level on free tier, only use for best_match
+      const usePressureLevels = model === 'best_match';
+
+      const url = usePressureLevels
+        ? `${baseUrl}?latitude=${latitude}&longitude=${longitude}&hourly=${hourlyParams}&pressure_level=${pressureLevels}&pressure_level_variables=${pressureLevelParams}&models=${model}&forecast_days=${forecastDays}&timezone=auto`
+        : `${baseUrl}?latitude=${latitude}&longitude=${longitude}&hourly=${hourlyParams}&forecast_days=${forecastDays}&timezone=auto`;
+
+      console.log('Fetching from:', baseUrl);
+      console.log('Model:', model);
 
       const response = await fetch(url);
       if (!response.ok) {
+        console.error('API Error:', response.status, response.statusText);
         throw new Error(`Forecast API error: ${response.statusText}`);
       }
 
       const data = await response.json();
+
+      console.log('API Response sample:', {
+        hasHourly: !!data.hourly,
+        hasPressureLevel: !!data.pressure_level,
+        hourlyKeys: data.hourly ? Object.keys(data.hourly).slice(0, 5) : [],
+        tempSample: data.hourly?.temperature_2m?.slice(0, 3),
+        pressureLevelKeys: data.pressure_level ? Object.keys(data.pressure_level).slice(0, 5) : [],
+      });
 
       const forecastData: ForecastData = {
         latitude: data.latitude,
