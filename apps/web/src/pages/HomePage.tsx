@@ -1,5 +1,5 @@
 import { useTheme } from '../contexts/ThemeContext';
-import { FEATURED_PEAKS } from '@summitscope/core';
+import { FEATURED_PEAKS } from '../../../../packages/core/src/index';
 
 export default function HomePage() {
   const { theme, toggleTheme } = useTheme();
