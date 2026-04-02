@@ -1,6 +1,27 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  content: [
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
+    '../../packages/core/src/**/*.{js,ts,jsx,tsx}',
+  ],
+  safelist: [
+    // Temperature color classes from getTempColor utility
+    'bg-purple-900',
+    'bg-purple-700',
+    'bg-purple-600',
+    'bg-blue-900',
+    'bg-blue-800',
+    'bg-blue-700',
+    'bg-cyan-600',
+    'bg-cyan-400',
+    'bg-yellow-300',
+    'bg-yellow-400',
+    'bg-orange-400',
+    'bg-orange-500',
+    'text-white',
+    'text-slate-900',
+  ],
   theme: {
     extend: {
       colors: {
