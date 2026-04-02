@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-gray-200 dark:border-gray-700;
+  }
+
+  body {
+    @apply bg-background-light dark:bg-background-dark text-gray-900 dark:text-gray-100;
+    @apply font-sans;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface-light dark:bg-surface-dark rounded-card shadow-card p-4;
+  }
+
+  .btn-primary {
+    @apply bg-primary-light dark:bg-primary-dark text-white px-4 py-2 rounded-input;
+    @apply hover:opacity-90 transition-opacity;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-input;
+    @apply hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors;
+  }
+
+  .input {
+    @apply bg-surface-light dark:bg-surface-dark border border-gray-300 dark:border-gray-600;
+    @apply rounded-input px-3 py-2 text-gray-900 dark:text-gray-100;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark;
+  }
+
+  .skeleton {
+    @apply bg-gray-200 dark:bg-gray-700 animate-pulse rounded;
+  }
+}
