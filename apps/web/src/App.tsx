@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { UnitsProvider } from './contexts/UnitsContext';
 import HomePage from './pages/HomePage';
+import PeakDetailPage from './pages/PeakDetailPage';
 
 function App() {
   return (
@@ -10,7 +11,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/peak/:id" element={<div className="p-8 text-center">Peak Detail (Coming Soon)</div>} />
+            <Route path="/peak/:id" element={<PeakDetailPage />} />
             <Route path="/saved" element={<div className="p-8 text-center">Saved Locations (Coming Soon)</div>} />
             <Route path="/settings" element={<div className="p-8 text-center">Settings (Coming Soon)</div>} />
           </Routes>
