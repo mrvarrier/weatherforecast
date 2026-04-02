@@ -81,18 +81,18 @@ export function calculateWindChill(tempCelsius: number, windSpeedKmh: number): n
  * Get temperature color for visual coding
  */
 export function getTempColor(tempCelsius: number): string {
-  if (tempCelsius <= -30) return 'bg-purple-700 text-white';
-  if (tempCelsius <= -20) return 'bg-purple-600 text-white';
-  if (tempCelsius <= -15) return 'bg-purple-500 text-white';
-  if (tempCelsius <= -10) return 'bg-blue-700 text-white';
-  if (tempCelsius <= -5) return 'bg-blue-600 text-white';
-  if (tempCelsius <= 0) return 'bg-blue-500 text-white';
-  if (tempCelsius <= 5) return 'bg-cyan-400 text-slate-900';
-  if (tempCelsius <= 10) return 'bg-cyan-300 text-slate-900';
-  if (tempCelsius <= 15) return 'bg-yellow-200 text-slate-900';
-  if (tempCelsius <= 20) return 'bg-yellow-300 text-slate-900';
-  if (tempCelsius <= 25) return 'bg-orange-300 text-slate-900';
-  return 'bg-orange-400 text-slate-900';
+  if (tempCelsius <= -30) return 'bg-purple-900 text-white';
+  if (tempCelsius <= -20) return 'bg-purple-700 text-white';
+  if (tempCelsius <= -15) return 'bg-purple-600 text-white';
+  if (tempCelsius <= -10) return 'bg-blue-900 text-white';
+  if (tempCelsius <= -5) return 'bg-blue-800 text-white';
+  if (tempCelsius <= 0) return 'bg-blue-700 text-white';
+  if (tempCelsius <= 5) return 'bg-cyan-600 text-white';
+  if (tempCelsius <= 10) return 'bg-cyan-400 text-slate-900';
+  if (tempCelsius <= 15) return 'bg-yellow-300 text-slate-900';
+  if (tempCelsius <= 20) return 'bg-yellow-400 text-slate-900';
+  if (tempCelsius <= 25) return 'bg-orange-400 text-slate-900';
+  return 'bg-orange-500 text-slate-900';
 }
 
 /**
