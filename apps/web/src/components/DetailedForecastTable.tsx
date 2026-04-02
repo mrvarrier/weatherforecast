@@ -278,9 +278,9 @@ export default function DetailedForecastTable({
             </tr>
 
             {/* Wind Row */}
-            <tr className="border-t border-slate-200">
+            <tr className="border-t border-slate-300">
               <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
-                {windUnit}
+                Wind {windUnit}
               </td>
               {dailyData.map((day) => (
                 <>
@@ -310,6 +310,32 @@ export default function DetailedForecastTable({
                   </td>
                 </>
               ))}
+            </tr>
+
+            {/* Wind Gusts Row */}
+            <tr>
+              <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
+                Gusts {windUnit}
+              </td>
+              {dailyData.map((day) => {
+                const amData = getRepresentative(day.AM);
+                const pmData = getRepresentative(day.PM);
+                const nightData = getRepresentative(day.night);
+
+                return (
+                  <>
+                    <td key={`${day.date}-am-gust`} className="border border-slate-200 p-2 text-center text-xs text-red-700 font-semibold">
+                      {amData && convertWind(forecast.hourly.windgusts_10m[forecast.hourly.time.indexOf(amData.time)] ?? 0)}
+                    </td>
+                    <td key={`${day.date}-pm-gust`} className="border border-slate-200 p-2 text-center text-xs text-red-700 font-semibold">
+                      {pmData && convertWind(forecast.hourly.windgusts_10m[forecast.hourly.time.indexOf(pmData.time)] ?? 0)}
+                    </td>
+                    <td key={`${day.date}-night-gust`} className="border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-xs text-red-700 font-semibold">
+                      {nightData && convertWind(forecast.hourly.windgusts_10m[forecast.hourly.time.indexOf(nightData.time)] ?? 0)}
+                    </td>
+                  </>
+                );
+              })}
             </tr>
 
             {/* Snow Row */}
@@ -347,6 +373,32 @@ export default function DetailedForecastTable({
               })}
             </tr>
 
+            {/* Precipitation Probability Row */}
+            <tr>
+              <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
+                Precip %
+              </td>
+              {dailyData.map((day) => {
+                const amData = getRepresentative(day.AM);
+                const pmData = getRepresentative(day.PM);
+                const nightData = getRepresentative(day.night);
+
+                return (
+                  <>
+                    <td key={`${day.date}-am-prob`} className="border border-slate-200 p-2 text-center text-sm font-semibold text-blue-700">
+                      {amData && (amData.precipProb > 0 ? `${amData.precipProb}%` : '—')}
+                    </td>
+                    <td key={`${day.date}-pm-prob`} className="border border-slate-200 p-2 text-center text-sm font-semibold text-blue-700">
+                      {pmData && (pmData.precipProb > 0 ? `${pmData.precipProb}%` : '—')}
+                    </td>
+                    <td key={`${day.date}-night-prob`} className="border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-semibold text-blue-700">
+                      {nightData && (nightData.precipProb > 0 ? `${nightData.precipProb}%` : '—')}
+                    </td>
+                  </>
+                );
+              })}
+            </tr>
+
             {/* Rain Row */}
             <tr>
               <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
@@ -374,8 +426,85 @@ export default function DetailedForecastTable({
               })}
             </tr>
 
-            {/* Max Temperature Row */}
+            {/* Humidity Row */}
             <tr className="border-t border-slate-200">
+              <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
+                Humidity %
+              </td>
+              {dailyData.map((day) => {
+                const amData = getRepresentative(day.AM);
+                const pmData = getRepresentative(day.PM);
+                const nightData = getRepresentative(day.night);
+
+                const getHumidity = (data: TimePeriodData | null | undefined) => {
+                  if (!data) return null;
+                  const idx = forecast.hourly.time.indexOf(data.time);
+                  return forecast.hourly.relativehumidity_2m[idx] ?? null;
+                };
+
+                return (
+                  <>
+                    <td key={`${day.date}-am-humid`} className="border border-slate-200 p-2 text-center text-xs text-slate-600">
+                      {getHumidity(amData) !== null ? `${getHumidity(amData)}%` : '—'}
+                    </td>
+                    <td key={`${day.date}-pm-humid`} className="border border-slate-200 p-2 text-center text-xs text-slate-600">
+                      {getHumidity(pmData) !== null ? `${getHumidity(pmData)}%` : '—'}
+                    </td>
+                    <td key={`${day.date}-night-humid`} className="border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-xs text-slate-600">
+                      {getHumidity(nightData) !== null ? `${getHumidity(nightData)}%` : '—'}
+                    </td>
+                  </>
+                );
+              })}
+            </tr>
+
+            {/* UV Index Row */}
+            <tr>
+              <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
+                UV Index
+              </td>
+              {dailyData.map((day) => {
+                const amData = getRepresentative(day.AM);
+                const pmData = getRepresentative(day.PM);
+                const nightData = getRepresentative(day.night);
+
+                const getUV = (data: TimePeriodData | null | undefined) => {
+                  if (!data) return null;
+                  const idx = forecast.hourly.time.indexOf(data.time);
+                  return forecast.hourly.uv_index[idx] ?? null;
+                };
+
+                const getUVColor = (uv: number | null) => {
+                  if (uv === null) return '';
+                  if (uv <= 2) return 'text-green-600';
+                  if (uv <= 5) return 'text-yellow-600';
+                  if (uv <= 7) return 'text-orange-600';
+                  if (uv <= 10) return 'text-red-600';
+                  return 'text-purple-600';
+                };
+
+                const amUV = getUV(amData);
+                const pmUV = getUV(pmData);
+                const nightUV = getUV(nightData);
+
+                return (
+                  <>
+                    <td key={`${day.date}-am-uv`} className={`border border-slate-200 p-2 text-center text-sm font-semibold ${getUVColor(amUV)}`}>
+                      {amUV !== null ? Math.round(amUV) : '—'}
+                    </td>
+                    <td key={`${day.date}-pm-uv`} className={`border border-slate-200 p-2 text-center text-sm font-semibold ${getUVColor(pmUV)}`}>
+                      {pmUV !== null ? Math.round(pmUV) : '—'}
+                    </td>
+                    <td key={`${day.date}-night-uv`} className={`border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-semibold ${getUVColor(nightUV)}`}>
+                      {nightUV !== null ? Math.round(nightUV) : '—'}
+                    </td>
+                  </>
+                );
+              })}
+            </tr>
+
+            {/* Max Temperature Row */}
+            <tr className="border-t border-slate-300">
               <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
                 max {tempUnit}
               </td>
