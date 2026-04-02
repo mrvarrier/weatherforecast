@@ -225,7 +225,7 @@ describe('formatVisibility', () => {
 
 describe('formatPressure', () => {
   it('should format hPa with correct unit', () => {
-    expect(formatPressure(1013.25, 'hpa')).toBe('1013.2 hPa');
+    expect(formatPressure(1013.25, 'hpa')).toBe('1013.3 hPa');
   });
 
   it('should format inHg with correct unit', () => {

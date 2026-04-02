@@ -95,7 +95,7 @@ describe('computeSafetyScore', () => {
 
   it('should apply freezing level bonus when above elevation', () => {
     const result = computeSafetyScore({ ...baseConditions, freezingLevel: 4500, elevation: 4000 });
-    expect(result.score).toBe(105); // 100 + 5 bonus, will be clamped to 100
+    expect(result.score).toBe(100); // 100 + 5 bonus, clamped to 100
     expect(result.factors.freezingLevelBonus).toBe(5);
   });
 
@@ -275,7 +275,7 @@ describe('computeSafetyTimeline', () => {
     const timeline = computeSafetyTimeline(conditions);
     expect(timeline).toHaveLength(2);
     expect(timeline[0]?.score).toBe(100);
-    expect(timeline[1]?.score).toBe(60);
+    expect(timeline[1]?.score).toBe(65); // 100 - 40 (wind) + 5 (freezing bonus)
   });
 
   it('should return empty array for empty input', () => {
