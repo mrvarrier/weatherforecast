@@ -1,0 +1,36 @@
+{
+  "name": "@summitscope/web",
+  "version": "1.0.0",
+  "description": "SummitScope web application (React + Vite)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "dependencies": {
+    "@summitscope/core": "*",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.21.1",
+    "recharts": "^2.10.3",
+    "mapbox-gl": "^3.1.0",
+    "date-fns": "^3.0.6"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.47",
+    "@types/react-dom": "^18.2.18",
+    "@types/mapbox-gl": "^3.1.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.10",
+    "typescript": "^5.3.3",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.32",
+    "autoprefixer": "^10.4.16",
+    "workbox-window": "^7.0.0",
+    "workbox-precaching": "^7.0.0",
+    "vite-plugin-pwa": "^0.17.4"
+  }
+}
