@@ -16,6 +16,7 @@ import {
   getElevationEmoji,
 } from '../../../../packages/core/src/index';
 import type { ForecastData, SafetyScore, ElevationBand } from '../../../../packages/core/src/index';
+import DetailedForecastTable from '../components/DetailedForecastTable';
 
 export default function PeakDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -128,104 +129,6 @@ export default function PeakDetailPage() {
         })
       : null;
 
-  // Get daily forecasts at selected elevation
-  const getDailyForecasts = () => {
-    if (!forecast?.hourly || !selectedBand) return [];
-
-    const dailyData: Array<{
-      date: string;
-      dayName: string;
-      maxTemp: number;
-      minTemp: number;
-      avgWind: number;
-      maxPrecipProb: number;
-      totalPrecip: number;
-      avgSafetyScore: number;
-      weatherCode: number;
-    }> = [];
-
-    // Group hourly data by day
-    const dayGroups = new Map<string, number[]>();
-
-    forecast.hourly.time.forEach((time, index) => {
-      const date = new Date(time);
-      const dateKey = date.toISOString().split('T')[0] ?? '';
-
-      if (!dayGroups.has(dateKey)) {
-        dayGroups.set(dateKey, []);
-      }
-      dayGroups.get(dateKey)?.push(index);
-    });
-
-    // Process each day
-    dayGroups.forEach((hourIndices, dateKey) => {
-      const temps: number[] = [];
-      const winds: number[] = [];
-      const precipProbs: number[] = [];
-      const precips: number[] = [];
-      const safetyScores: number[] = [];
-      let mostCommonWeatherCode = 0;
-
-      hourIndices.forEach((hourIndex) => {
-        // Get temperature at elevation
-        const temp =
-          getWeatherAtElevation(
-            forecast.pressure_levels.data.temperature,
-            selectedBand.pressureLevel,
-            hourIndex,
-            forecast.hourly.temperature_2m[hourIndex]
-          ) ?? forecast.hourly.temperature_2m[hourIndex] ?? 0;
-
-        // Get wind at elevation
-        const wind =
-          getWeatherAtElevation(
-            forecast.pressure_levels.data.windspeed,
-            selectedBand.pressureLevel,
-            hourIndex,
-            forecast.hourly.windspeed_10m[hourIndex]
-          ) ?? forecast.hourly.windspeed_10m[hourIndex] ?? 0;
-
-        temps.push(temp);
-        winds.push(wind);
-        precipProbs.push(forecast.hourly.precipitation_probability[hourIndex] ?? 0);
-        precips.push(forecast.hourly.precipitation[hourIndex] ?? 0);
-
-        // Calculate safety score for this hour
-        const safety = computeSafetyScore({
-          windSpeed: wind,
-          precipProbability: forecast.hourly.precipitation_probability[hourIndex] ?? 0,
-          visibility: forecast.hourly.visibility[hourIndex] ?? 10000,
-          feelsLike: temp - (selectedBand.elevation / 1000) * 6.5,
-          cape: forecast.hourly.cape[hourIndex] ?? 0,
-          freezingLevel: forecast.hourly.freezinglevel_height[hourIndex] ?? 0,
-          elevation: selectedBand.elevation,
-          timestamp: forecast.hourly.time[hourIndex] ?? '',
-        });
-        safetyScores.push(safety.score);
-
-        mostCommonWeatherCode = forecast.hourly.weathercode[hourIndex] ?? 0;
-      });
-
-      const date = new Date(dateKey);
-      const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-
-      dailyData.push({
-        date: dateKey,
-        dayName,
-        maxTemp: Math.max(...temps),
-        minTemp: Math.min(...temps),
-        avgWind: winds.reduce((a, b) => a + b, 0) / winds.length,
-        maxPrecipProb: Math.max(...precipProbs),
-        totalPrecip: precips.reduce((a, b) => a + b, 0),
-        avgSafetyScore: Math.round(safetyScores.reduce((a, b) => a + b, 0) / safetyScores.length),
-        weatherCode: mostCommonWeatherCode,
-      });
-    });
-
-    return dailyData;
-  };
-
-  const dailyForecasts = getDailyForecasts();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
@@ -546,104 +449,8 @@ export default function PeakDetailPage() {
               </div>
             </div>
 
-            {/* 16-Day Forecast Timeline */}
-            <div className="card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-slate-900">16-Day Forecast</h3>
-                {selectedBand && (
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-primary-50 rounded-lg">
-                    <span className="text-sm">{getElevationEmoji(selectedBand.name)}</span>
-                    <span className="text-xs font-semibold text-primary-700">
-                      {selectedBand.name} Elevation
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3">
-                {dailyForecasts.slice(0, 16).map((day) => {
-                  const safetyRating =
-                    day.avgSafetyScore >= 86
-                      ? 'OPTIMAL'
-                      : day.avgSafetyScore >= 61
-                      ? 'GOOD'
-                      : day.avgSafetyScore >= 31
-                      ? 'CAUTION'
-                      : 'AVOID';
-
-                  const safetyColor =
-                    safetyRating === 'OPTIMAL'
-                      ? 'bg-green-500'
-                      : safetyRating === 'GOOD'
-                      ? 'bg-blue-500'
-                      : safetyRating === 'CAUTION'
-                      ? 'bg-yellow-500'
-                      : 'bg-red-500';
-
-                  return (
-                    <div key={day.date} className="bg-slate-50 rounded-xl p-3 hover:bg-slate-100 transition-colors">
-                      <div className="text-center">
-                        <p className="text-xs font-semibold text-slate-600 mb-1">{day.dayName}</p>
-                        <p className="text-xs text-slate-500 mb-2">
-                          {new Date(day.date).getDate()}/{new Date(day.date).getMonth() + 1}
-                        </p>
-
-                        {/* Temperature Range */}
-                        <div className="mb-2">
-                          <p className="text-lg font-bold text-slate-900">
-                            {Math.round(day.maxTemp)}°
-                          </p>
-                          <p className="text-xs text-slate-500">{Math.round(day.minTemp)}°</p>
-                        </div>
-
-                        {/* Wind */}
-                        <div className="flex items-center justify-center gap-1 text-xs text-slate-600 mb-2">
-                          <span>💨</span>
-                          <span>{Math.round(day.avgWind)} km/h</span>
-                        </div>
-
-                        {/* Precipitation */}
-                        <div className="flex items-center justify-center gap-1 text-xs text-slate-600 mb-2">
-                          <span>💧</span>
-                          <span>{day.maxPrecipProb}%</span>
-                        </div>
-
-                        {/* Safety Indicator */}
-                        <div className="flex items-center justify-center mt-2">
-                          <div
-                            className={`w-full h-1.5 rounded-full ${safetyColor}`}
-                            title={`Safety: ${safetyRating} (${day.avgSafetyScore})`}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Legend */}
-              <div className="mt-4 pt-4 border-t border-slate-200">
-                <p className="text-xs font-semibold text-slate-600 mb-2">Safety Scale:</p>
-                <div className="flex items-center gap-3 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                    <span className="text-slate-600">Optimal (86+)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                    <span className="text-slate-600">Good (61-85)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <span className="text-slate-600">Caution (31-60)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <span className="text-slate-600">Avoid (0-30)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Detailed Forecast Table */}
+            {selectedBand && <DetailedForecastTable forecast={forecast} selectedBand={selectedBand} peakName={peak.name} />}
           </div>
         )}
       </main>
