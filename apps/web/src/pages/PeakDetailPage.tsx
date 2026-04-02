@@ -11,16 +11,22 @@ import {
   formatPrecip,
   formatPressure,
   formatVisibility,
+  calculateElevationBands,
+  getWeatherAtElevation,
+  getElevationEmoji,
 } from '../../../../packages/core/src/index';
-import type { ForecastData, SafetyScore } from '../../../../packages/core/src/index';
+import type { ForecastData, SafetyScore, ElevationBand } from '../../../../packages/core/src/index';
 
 export default function PeakDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [forecast, setForecast] = useState<ForecastData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedElevationIndex, setSelectedElevationIndex] = useState(2); // Default to Summit
 
   const peak = FEATURED_PEAKS.find((p) => p.id === id);
+  const elevationBands: ElevationBand[] = peak ? calculateElevationBands(peak.elevation) : [];
+  const selectedBand: ElevationBand | undefined = elevationBands[selectedElevationIndex] ?? elevationBands[2];
 
   useEffect(() => {
     if (!peak) return;
@@ -56,9 +62,9 @@ export default function PeakDetailPage() {
     );
   }
 
-  // Get current conditions from first hourly data point
+  // Get current conditions at selected elevation
   const getCurrentConditions = () => {
-    if (!forecast?.hourly) return null;
+    if (!forecast?.hourly || !selectedBand) return null;
 
     const now = new Date();
     const currentHourIndex = forecast.hourly.time.findIndex((time) => {
@@ -68,37 +74,59 @@ export default function PeakDetailPage() {
 
     if (currentHourIndex === -1) return null;
 
+    // Get temperature and wind at elevation from pressure level data
+    const tempAtElevation = getWeatherAtElevation(
+      forecast.pressure_levels.data.temperature,
+      selectedBand.pressureLevel,
+      currentHourIndex,
+      forecast.hourly.temperature_2m[currentHourIndex]
+    );
+
+    const windAtElevation = getWeatherAtElevation(
+      forecast.pressure_levels.data.windspeed,
+      selectedBand.pressureLevel,
+      currentHourIndex,
+      forecast.hourly.windspeed_10m[currentHourIndex]
+    );
+
+    // Surface data (doesn't vary by elevation)
+    const surfaceTemp = forecast.hourly.temperature_2m[currentHourIndex] ?? 0;
+    const surfaceWind = forecast.hourly.windspeed_10m[currentHourIndex] ?? 0;
+
     return {
       time: forecast.hourly.time[currentHourIndex] ?? '',
-      temperature: forecast.hourly.temperature_2m[currentHourIndex] ?? 0,
-      apparentTemperature: forecast.hourly.apparent_temperature[currentHourIndex] ?? 0,
-      windSpeed: forecast.hourly.windspeed_10m[currentHourIndex] ?? 0,
-      windGusts: forecast.hourly.windgusts_10m[currentHourIndex] ?? 0,
+      temperature: tempAtElevation ?? surfaceTemp,
+      apparentTemperature: tempAtElevation
+        ? tempAtElevation - (selectedBand.elevation / 1000) * 6.5 // Lapse rate adjustment
+        : forecast.hourly.apparent_temperature[currentHourIndex] ?? 0,
+      windSpeed: windAtElevation ?? surfaceWind,
+      windGusts: (windAtElevation ?? surfaceWind) * 1.3, // Estimate gusts at ~30% higher
       windDirection: forecast.hourly.winddirection_10m[currentHourIndex] ?? 0,
       precipitation: forecast.hourly.precipitation[currentHourIndex] ?? 0,
       precipitationProbability: forecast.hourly.precipitation_probability[currentHourIndex] ?? 0,
       weatherCode: forecast.hourly.weathercode[currentHourIndex] ?? 0,
       cloudCover: forecast.hourly.cloudcover[currentHourIndex] ?? 0,
       visibility: forecast.hourly.visibility[currentHourIndex] ?? 10000,
-      surfacePressure: forecast.hourly.surface_pressure[currentHourIndex] ?? 1013,
+      surfacePressure: selectedBand.pressureLevel,
       freezingLevel: forecast.hourly.freezinglevel_height[currentHourIndex] ?? 0,
       cape: forecast.hourly.cape[currentHourIndex] ?? 0,
     };
   };
 
   const currentConditions = getCurrentConditions();
-  const currentSafety: SafetyScore | null = currentConditions
-    ? computeSafetyScore({
-        windSpeed: currentConditions.windSpeed,
-        precipProbability: currentConditions.precipitationProbability,
-        visibility: currentConditions.visibility,
-        feelsLike: currentConditions.apparentTemperature,
-        cape: currentConditions.cape,
-        freezingLevel: currentConditions.freezingLevel,
-        elevation: peak.elevation,
-        timestamp: currentConditions.time,
-      })
-    : null;
+  const currentSafety: SafetyScore | null =
+    currentConditions && selectedBand
+      ? computeSafetyScore({
+          windSpeed: currentConditions.windSpeed,
+          precipProbability: currentConditions.precipitationProbability,
+          visibility: currentConditions.visibility,
+          feelsLike: currentConditions.apparentTemperature,
+          cape: currentConditions.cape,
+          freezingLevel: currentConditions.freezingLevel,
+          elevation: selectedBand.elevation,
+          timestamp: currentConditions.time,
+        })
+      : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
@@ -157,6 +185,43 @@ export default function PeakDetailPage() {
           </div>
         </div>
 
+        {/* Elevation Band Selector */}
+        <div className="mb-6">
+          <div className="card p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                Forecast Elevation
+              </h3>
+              <p className="text-xs text-slate-500">
+                {selectedBand && `${selectedBand.pressureLevel} hPa`}
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {elevationBands.map((band, index) => (
+                <button
+                  key={band.name}
+                  onClick={() => setSelectedElevationIndex(index)}
+                  className={`px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                    selectedElevationIndex === index
+                      ? 'bg-primary-600 text-white shadow-md scale-105'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">{getElevationEmoji(band.name)}</div>
+                  <div className="text-sm font-bold">{band.name}</div>
+                  <div className="text-xs opacity-90">{band.elevation.toLocaleString()}m</div>
+                </button>
+              ))}
+            </div>
+            <div className="mt-3 px-3 py-2 bg-blue-50 rounded-lg">
+              <p className="text-xs text-blue-900">
+                <strong>⚠️ Critical:</strong> Weather varies significantly by elevation. Summit conditions can be
+                drastically different from base camp.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Loading State */}
         {loading && (
           <div className="flex items-center justify-center py-20">
@@ -199,7 +264,17 @@ export default function PeakDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Current Conditions */}
               <div className="lg:col-span-2 card p-6">
-                <h3 className="text-xl font-bold text-slate-900 mb-4">Current Conditions</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-slate-900">Current Conditions</h3>
+                  {selectedBand && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-primary-50 rounded-lg">
+                      <span className="text-lg">{getElevationEmoji(selectedBand.name)}</span>
+                      <span className="text-sm font-semibold text-primary-700">
+                        {selectedBand.name} ({selectedBand.elevation.toLocaleString()}m)
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -286,7 +361,14 @@ export default function PeakDetailPage() {
 
               {/* Safety Score */}
               <div className="card p-6">
-                <h3 className="text-xl font-bold text-slate-900 mb-4">Summit Safety</h3>
+                <div className="text-center mb-4">
+                  <h3 className="text-xl font-bold text-slate-900 mb-1">Safety Score</h3>
+                  {selectedBand && (
+                    <p className="text-xs text-slate-500">
+                      {selectedBand.name} Elevation ({selectedBand.elevation.toLocaleString()}m)
+                    </p>
+                  )}
+                </div>
                 <div className="text-center">
                   <div
                     className={`inline-flex items-center justify-center w-32 h-32 rounded-full mb-4 ${getSafetyRatingColor(
