@@ -8,14 +8,12 @@ function App() {
     <ThemeProvider>
       <UnitsProvider>
         <BrowserRouter>
-          <div className="min-h-screen bg-background-light dark:bg-background-dark">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/peak/:id" element={<div className="p-8 text-center">Peak Detail (Coming Soon)</div>} />
-              <Route path="/saved" element={<div className="p-8 text-center">Saved Locations (Coming Soon)</div>} />
-              <Route path="/settings" element={<div className="p-8 text-center">Settings (Coming Soon)</div>} />
-            </Routes>
-          </div>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/peak/:id" element={<div className="p-8 text-center">Peak Detail (Coming Soon)</div>} />
+            <Route path="/saved" element={<div className="p-8 text-center">Saved Locations (Coming Soon)</div>} />
+            <Route path="/settings" element={<div className="p-8 text-center">Settings (Coming Soon)</div>} />
+          </Routes>
         </BrowserRouter>
       </UnitsProvider>
     </ThemeProvider>
