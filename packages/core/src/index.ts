@@ -44,6 +44,19 @@ export {
 
 export type { ElevationBand } from './utils/elevation';
 
+// Export weather utilities
+export {
+  getWeatherCondition,
+  calculateWindChill,
+  getTempColor,
+  getWindDirectionArrow,
+  getTimePeriodName,
+  calculateSunTimes,
+  WEATHER_CODES,
+} from './utils/weather';
+
+export type { WeatherCondition } from './utils/weather';
+
 // Export featured peaks data
 import FEATURED_PEAKS_DATA from './data/featuredPeaks.json';
 import type { FeaturedPeak } from './types';
