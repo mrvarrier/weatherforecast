@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { FEATURED_PEAKS } from '../../../../packages/core/src/index';
 
 export default function HomePage() {
@@ -72,8 +73,9 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {FEATURED_PEAKS.map((peak) => (
-              <div
+              <Link
                 key={peak.id}
+                to={`/peak/${peak.id}`}
                 className="card group cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200"
               >
                 {/* Peak Header */}
@@ -151,7 +153,7 @@ export default function HomePage() {
                     </svg>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
