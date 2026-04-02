@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { ForecastData, ElevationBand } from '../../../../packages/core/src/index';
 import {
   getWeatherAtElevation,
@@ -12,6 +12,8 @@ import {
   estimateWindAtElevation,
 } from '../../../../packages/core/src/index';
 import ElevationProfileChart from './ElevationProfileChart';
+
+type UnitSystem = 'metric' | 'imperial';
 
 interface DetailedForecastTableProps {
   forecast: ForecastData;
@@ -45,6 +47,45 @@ export default function DetailedForecastTable({
   forecast,
   selectedBand,
 }: DetailedForecastTableProps) {
+  const [units, setUnits] = useState<UnitSystem>('metric');
+
+  // Unit conversion functions
+  const convertTemp = (celsius: number) => {
+    if (units === 'imperial') {
+      return Math.round((celsius * 9) / 5 + 32);
+    }
+    return Math.round(celsius);
+  };
+
+  const convertWind = (kmh: number) => {
+    if (units === 'imperial') {
+      return Math.round(kmh * 0.621371); // km/h to mph
+    }
+    return Math.round(kmh);
+  };
+
+  const convertPrecip = (mm: number) => {
+    if (units === 'imperial') {
+      return (mm * 0.0393701).toFixed(1); // mm to inches
+    }
+    return Math.round(mm);
+  };
+
+  const convertElevation = (meters: number) => {
+    if (units === 'imperial') {
+      return Math.round(meters * 3.28084); // meters to feet
+    }
+    return meters;
+  };
+
+  const tempUnit = units === 'imperial' ? '°F' : '°C';
+  const windUnit = units === 'imperial' ? 'mph' : 'km/h';
+  const precipUnit = units === 'imperial' ? 'in' : 'mm';
+  const elevUnit = units === 'imperial' ? 'ft' : 'm';
+
+  // Get temperature color - always uses Celsius internally
+  const getTempColorForDisplay = (celsius: number) => getTempColor(celsius);
+
   const dailyData = useMemo(() => {
     const days: DayForecast[] = [];
     const dayMap = new Map<string, DayForecast>();
@@ -136,11 +177,20 @@ export default function DetailedForecastTable({
 
   return (
     <div className="card p-4">
-      <div className="mb-4">
-        <h3 className="text-xl font-bold text-slate-900">Detailed Forecast</h3>
-        <p className="text-sm text-slate-600">
-          {selectedBand.name} Elevation ({selectedBand.elevation.toLocaleString()}m)
-        </p>
+      <div className="mb-4 flex items-start justify-between">
+        <div>
+          <h3 className="text-xl font-bold text-slate-900">Detailed Forecast</h3>
+          <p className="text-sm text-slate-600">
+            {selectedBand.name} Elevation ({convertElevation(selectedBand.elevation).toLocaleString()}
+            {elevUnit})
+          </p>
+        </div>
+        <button
+          onClick={() => setUnits(units === 'metric' ? 'imperial' : 'metric')}
+          className="px-3 py-1 text-sm font-medium rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+        >
+          {units === 'metric' ? '°C | m/s' : '°F | mph'}
+        </button>
       </div>
 
       <div className="overflow-x-auto -mx-4 px-4">
@@ -230,14 +280,14 @@ export default function DetailedForecastTable({
             {/* Wind Row */}
             <tr className="border-t border-slate-200">
               <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
-                km/h
+                {windUnit}
               </td>
               {dailyData.map((day) => (
                 <>
                   <td key={`${day.date}-am-wind`} className="border border-slate-200 p-2 text-center">
                     {getRepresentative(day.AM) && (
                       <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-900 text-white font-bold text-sm">
-                        {Math.round(getRepresentative(day.AM)!.windSpeed)}
+                        {convertWind(getRepresentative(day.AM)!.windSpeed)}
                         <span className="text-xs ml-0.5">{getWindDirectionArrow(getRepresentative(day.AM)!.windDirection)}</span>
                       </div>
                     )}
@@ -245,7 +295,7 @@ export default function DetailedForecastTable({
                   <td key={`${day.date}-pm-wind`} className="border border-slate-200 p-2 text-center">
                     {getRepresentative(day.PM) && (
                       <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-900 text-white font-bold text-sm">
-                        {Math.round(getRepresentative(day.PM)!.windSpeed)}
+                        {convertWind(getRepresentative(day.PM)!.windSpeed)}
                         <span className="text-xs ml-0.5">{getWindDirectionArrow(getRepresentative(day.PM)!.windDirection)}</span>
                       </div>
                     )}
@@ -253,7 +303,7 @@ export default function DetailedForecastTable({
                   <td key={`${day.date}-night-wind`} className="border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center">
                     {getRepresentative(day.night) && (
                       <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-900 text-white font-bold text-sm">
-                        {Math.round(getRepresentative(day.night)!.windSpeed)}
+                        {convertWind(getRepresentative(day.night)!.windSpeed)}
                         <span className="text-xs ml-0.5">{getWindDirectionArrow(getRepresentative(day.night)!.windDirection)}</span>
                       </div>
                     )}
@@ -262,10 +312,10 @@ export default function DetailedForecastTable({
               ))}
             </tr>
 
-            {/* Snow (cm) Row */}
+            {/* Snow Row */}
             <tr className="border-t border-slate-200">
               <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
-                ❄️ cm
+                ❄️ {units === 'imperial' ? 'in' : 'cm'}
               </td>
               {dailyData.map((day) => {
                 const amSnow = getTotalPrecip(day.AM);
@@ -273,26 +323,34 @@ export default function DetailedForecastTable({
                 const nightSnow = getTotalPrecip(day.night);
                 const avgTemp = (getMaxTemp(day.AM) + getMinTemp(day.AM)) / 2;
 
+                // Convert to cm or inches
+                const formatSnow = (mm: number) => {
+                  if (units === 'imperial') {
+                    return (mm * 10 * 0.393701).toFixed(1); // mm to cm to inches
+                  }
+                  return Math.round(mm * 10); // mm to cm
+                };
+
                 return (
                   <>
                     <td key={`${day.date}-am-snow`} className="border border-slate-200 p-2 text-center text-sm font-semibold">
-                      {avgTemp < 2 && amSnow > 0 ? Math.round(amSnow * 10) : '—'}
+                      {avgTemp < 2 && amSnow > 0 ? formatSnow(amSnow) : '—'}
                     </td>
                     <td key={`${day.date}-pm-snow`} className="border border-slate-200 p-2 text-center text-sm font-semibold">
-                      {avgTemp < 2 && pmSnow > 0 ? Math.round(pmSnow * 10) : '—'}
+                      {avgTemp < 2 && pmSnow > 0 ? formatSnow(pmSnow) : '—'}
                     </td>
                     <td key={`${day.date}-night-snow`} className="border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-semibold">
-                      {avgTemp < 2 && nightSnow > 0 ? Math.round(nightSnow * 10) : '—'}
+                      {avgTemp < 2 && nightSnow > 0 ? formatSnow(nightSnow) : '—'}
                     </td>
                   </>
                 );
               })}
             </tr>
 
-            {/* Rain (mm) Row */}
+            {/* Rain Row */}
             <tr>
               <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
-                💧 mm
+                💧 {precipUnit}
               </td>
               {dailyData.map((day) => {
                 const amRain = getTotalPrecip(day.AM);
@@ -303,13 +361,13 @@ export default function DetailedForecastTable({
                 return (
                   <>
                     <td key={`${day.date}-am-rain`} className="border border-slate-200 p-2 text-center text-sm font-semibold">
-                      {avgTemp >= 2 && amRain > 0 ? Math.round(amRain) : '—'}
+                      {avgTemp >= 2 && amRain > 0 ? convertPrecip(amRain) : '—'}
                     </td>
                     <td key={`${day.date}-pm-rain`} className="border border-slate-200 p-2 text-center text-sm font-semibold">
-                      {avgTemp >= 2 && pmRain > 0 ? Math.round(pmRain) : '—'}
+                      {avgTemp >= 2 && pmRain > 0 ? convertPrecip(pmRain) : '—'}
                     </td>
                     <td key={`${day.date}-night-rain`} className="border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-semibold">
-                      {avgTemp >= 2 && nightRain > 0 ? Math.round(nightRain) : '—'}
+                      {avgTemp >= 2 && nightRain > 0 ? convertPrecip(nightRain) : '—'}
                     </td>
                   </>
                 );
@@ -319,18 +377,18 @@ export default function DetailedForecastTable({
             {/* Max Temperature Row */}
             <tr className="border-t border-slate-200">
               <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
-                max °C
+                max {tempUnit}
               </td>
               {dailyData.map((day) => (
                 <>
-                  <td key={`${day.date}-am-maxtemp`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${getTempColor(getMaxTemp(day.AM))}`}>
-                    {Math.round(getMaxTemp(day.AM))}
+                  <td key={`${day.date}-am-maxtemp`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${getTempColorForDisplay(getMaxTemp(day.AM))}`}>
+                    {convertTemp(getMaxTemp(day.AM))}
                   </td>
-                  <td key={`${day.date}-pm-maxtemp`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${getTempColor(getMaxTemp(day.PM))}`}>
-                    {Math.round(getMaxTemp(day.PM))}
+                  <td key={`${day.date}-pm-maxtemp`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${getTempColorForDisplay(getMaxTemp(day.PM))}`}>
+                    {convertTemp(getMaxTemp(day.PM))}
                   </td>
-                  <td key={`${day.date}-night-maxtemp`} className={`border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-bold ${getTempColor(getMaxTemp(day.night))}`}>
-                    {Math.round(getMaxTemp(day.night))}
+                  <td key={`${day.date}-night-maxtemp`} className={`border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-bold ${getTempColorForDisplay(getMaxTemp(day.night))}`}>
+                    {convertTemp(getMaxTemp(day.night))}
                   </td>
                 </>
               ))}
@@ -339,18 +397,18 @@ export default function DetailedForecastTable({
             {/* Min Temperature Row */}
             <tr>
               <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
-                min °C
+                min {tempUnit}
               </td>
               {dailyData.map((day) => (
                 <>
-                  <td key={`${day.date}-am-mintemp`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${getTempColor(getMinTemp(day.AM))}`}>
-                    {Math.round(getMinTemp(day.AM))}
+                  <td key={`${day.date}-am-mintemp`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${getTempColorForDisplay(getMinTemp(day.AM))}`}>
+                    {convertTemp(getMinTemp(day.AM))}
                   </td>
-                  <td key={`${day.date}-pm-mintemp`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${getTempColor(getMinTemp(day.PM))}`}>
-                    {Math.round(getMinTemp(day.PM))}
+                  <td key={`${day.date}-pm-mintemp`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${getTempColorForDisplay(getMinTemp(day.PM))}`}>
+                    {convertTemp(getMinTemp(day.PM))}
                   </td>
-                  <td key={`${day.date}-night-mintemp`} className={`border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-bold ${getTempColor(getMinTemp(day.night))}`}>
-                    {Math.round(getMinTemp(day.night))}
+                  <td key={`${day.date}-night-mintemp`} className={`border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-bold ${getTempColorForDisplay(getMinTemp(day.night))}`}>
+                    {convertTemp(getMinTemp(day.night))}
                   </td>
                 </>
               ))}
@@ -359,7 +417,7 @@ export default function DetailedForecastTable({
             {/* Wind Chill Row */}
             <tr className="border-t border-slate-200">
               <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
-                🥶 chill °C
+                🥶 chill {tempUnit}
               </td>
               {dailyData.map((day) => {
                 const amData = getRepresentative(day.AM);
@@ -368,14 +426,14 @@ export default function DetailedForecastTable({
 
                 return (
                   <>
-                    <td key={`${day.date}-am-chill`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${amData ? getTempColor(calculateWindChill(amData.temp, amData.windSpeed)) : ''}`}>
-                      {amData && Math.round(calculateWindChill(amData.temp, amData.windSpeed))}
+                    <td key={`${day.date}-am-chill`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${amData ? getTempColorForDisplay(calculateWindChill(amData.temp, amData.windSpeed)) : ''}`}>
+                      {amData && convertTemp(calculateWindChill(amData.temp, amData.windSpeed))}
                     </td>
-                    <td key={`${day.date}-pm-chill`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${pmData ? getTempColor(calculateWindChill(pmData.temp, pmData.windSpeed)) : ''}`}>
-                      {pmData && Math.round(calculateWindChill(pmData.temp, pmData.windSpeed))}
+                    <td key={`${day.date}-pm-chill`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${pmData ? getTempColorForDisplay(calculateWindChill(pmData.temp, pmData.windSpeed)) : ''}`}>
+                      {pmData && convertTemp(calculateWindChill(pmData.temp, pmData.windSpeed))}
                     </td>
-                    <td key={`${day.date}-night-chill`} className={`border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-bold ${nightData ? getTempColor(calculateWindChill(nightData.temp, nightData.windSpeed)) : ''}`}>
-                      {nightData && Math.round(calculateWindChill(nightData.temp, nightData.windSpeed))}
+                    <td key={`${day.date}-night-chill`} className={`border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-bold ${nightData ? getTempColorForDisplay(calculateWindChill(nightData.temp, nightData.windSpeed)) : ''}`}>
+                      {nightData && convertTemp(calculateWindChill(nightData.temp, nightData.windSpeed))}
                     </td>
                   </>
                 );
@@ -385,7 +443,7 @@ export default function DetailedForecastTable({
             {/* Freezing Level Row */}
             <tr className="border-t border-slate-200">
               <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
-                Freezing level m
+                Freezing level {elevUnit}
               </td>
               {dailyData.map((day) => {
                 const amData = getRepresentative(day.AM);
@@ -395,13 +453,13 @@ export default function DetailedForecastTable({
                 return (
                   <>
                     <td key={`${day.date}-am-freeze`} className="border border-slate-200 p-2 text-center text-xs">
-                      {amData && amData.freezingLevel.toLocaleString()}
+                      {amData && convertElevation(amData.freezingLevel).toLocaleString()}
                     </td>
                     <td key={`${day.date}-pm-freeze`} className="border border-slate-200 p-2 text-center text-xs">
-                      {pmData && pmData.freezingLevel.toLocaleString()}
+                      {pmData && convertElevation(pmData.freezingLevel).toLocaleString()}
                     </td>
                     <td key={`${day.date}-night-freeze`} className="border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-xs">
-                      {nightData && nightData.freezingLevel.toLocaleString()}
+                      {nightData && convertElevation(nightData.freezingLevel).toLocaleString()}
                     </td>
                   </>
                 );
@@ -411,7 +469,7 @@ export default function DetailedForecastTable({
             {/* Cloud Base Row - Estimated from cloud cover */}
             <tr>
               <td className="sticky left-0 bg-white z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
-                Cloud base (m)
+                Cloud base ({elevUnit})
               </td>
               {dailyData.map((day) => {
                 const amData = getRepresentative(day.AM);
@@ -421,8 +479,8 @@ export default function DetailedForecastTable({
                 // Estimate cloud base from cloud cover (simplified)
                 const estimateCloudBase = (cloudCover: number) => {
                   if (cloudCover < 20) return '—';
-                  if (cloudCover < 50) return '2000';
-                  return '1500';
+                  const baseMeters = cloudCover < 50 ? 2000 : 1500;
+                  return convertElevation(baseMeters).toLocaleString();
                 };
 
                 return (
