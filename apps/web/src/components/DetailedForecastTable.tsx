@@ -48,6 +48,7 @@ export default function DetailedForecastTable({
   selectedBand,
 }: DetailedForecastTableProps) {
   const [units, setUnits] = useState<UnitSystem>('metric');
+  const [daysToShow, setDaysToShow] = useState<6 | 10 | 16>(6);
 
   // Unit conversion functions
   const convertTemp = (celsius: number) => {
@@ -157,8 +158,8 @@ export default function DetailedForecastTable({
 
     dayMap.forEach((day) => days.push(day));
 
-    return days.slice(0, 6); // Show 6 days like the reference
-  }, [forecast, selectedBand]);
+    return days.slice(0, daysToShow);
+  }, [forecast, selectedBand, daysToShow]);
 
   // Get representative data for each period (midpoint)
   const getRepresentative = (periods: TimePeriodData[]) => {
@@ -185,12 +186,40 @@ export default function DetailedForecastTable({
             {elevUnit})
           </p>
         </div>
-        <button
-          onClick={() => setUnits(units === 'metric' ? 'imperial' : 'metric')}
-          className="px-3 py-1 text-sm font-medium rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-        >
-          {units === 'metric' ? '°C | m/s' : '°F | mph'}
-        </button>
+        <div className="flex gap-2">
+          <div className="flex rounded-md overflow-hidden border border-slate-300">
+            <button
+              onClick={() => setDaysToShow(6)}
+              className={`px-3 py-1 text-xs font-medium transition-colors ${
+                daysToShow === 6 ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              6d
+            </button>
+            <button
+              onClick={() => setDaysToShow(10)}
+              className={`px-3 py-1 text-xs font-medium transition-colors border-x border-slate-300 ${
+                daysToShow === 10 ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              10d
+            </button>
+            <button
+              onClick={() => setDaysToShow(16)}
+              className={`px-3 py-1 text-xs font-medium transition-colors ${
+                daysToShow === 16 ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              16d
+            </button>
+          </div>
+          <button
+            onClick={() => setUnits(units === 'metric' ? 'imperial' : 'metric')}
+            className="px-3 py-1 text-sm font-medium rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+          >
+            {units === 'metric' ? '°C | km/h' : '°F | mph'}
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto -mx-4 px-4">
@@ -667,7 +696,11 @@ export default function DetailedForecastTable({
       </div>
 
       {/* Elevation Profile Chart */}
-      <ElevationProfileChart forecast={forecast} peakElevation={selectedBand.elevation} />
+      <ElevationProfileChart
+        forecast={forecast}
+        peakElevation={selectedBand.elevation}
+        daysToShow={daysToShow}
+      />
     </div>
   );
 }

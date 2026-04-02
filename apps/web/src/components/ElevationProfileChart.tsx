@@ -10,6 +10,7 @@ import {
 interface ElevationProfileChartProps {
   forecast: ForecastData;
   peakElevation: number;
+  daysToShow?: number;
 }
 
 interface ElevationLevel {
@@ -18,7 +19,11 @@ interface ElevationLevel {
   pressureLevel: number;
 }
 
-export default function ElevationProfileChart({ forecast, peakElevation }: ElevationProfileChartProps) {
+export default function ElevationProfileChart({
+  forecast,
+  peakElevation,
+  daysToShow = 6,
+}: ElevationProfileChartProps) {
   // Define elevation levels based on peak height
   const elevationLevels = useMemo((): ElevationLevel[] => {
     const levels: ElevationLevel[] = [];
@@ -97,8 +102,8 @@ export default function ElevationProfileChart({ forecast, peakElevation }: Eleva
       });
     });
 
-    return days.slice(0, 6); // Show 6 days like the main table
-  }, [forecast, elevationLevels]);
+    return days.slice(0, daysToShow);
+  }, [forecast, elevationLevels, daysToShow]);
 
   // Calculate SVG path for temperature line
   const getTemperaturePath = (dayIndex: number) => {
