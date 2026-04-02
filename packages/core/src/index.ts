@@ -40,6 +40,8 @@ export {
   isElevationCritical,
   getElevationEmoji,
   getWeatherAtElevation,
+  estimateTempAtElevation,
+  estimateWindAtElevation,
 } from './utils/elevation';
 
 export type { ElevationBand } from './utils/elevation';

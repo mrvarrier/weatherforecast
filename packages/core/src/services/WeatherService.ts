@@ -132,12 +132,20 @@ export class WeatherService {
 
       const url = `${baseUrl}?latitude=${latitude}&longitude=${longitude}&hourly=${hourlyParams}&pressure_level=${pressureLevels}&pressure_level_variables=${pressureLevelParams}&models=${model}&forecast_days=${forecastDays}&timezone=auto`;
 
+      console.log('Fetching forecast from:', url);
+
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Forecast API error: ${response.statusText}`);
       }
 
       const data = await response.json();
+
+      console.log('API Response:', {
+        hasPressureLevel: !!data.pressure_level,
+        pressureLevelKeys: data.pressure_level ? Object.keys(data.pressure_level) : [],
+        samplePressureData: data.pressure_level?.temperature_200hpa?.slice(0, 3),
+      });
 
       const forecastData: ForecastData = {
         latitude: data.latitude,

@@ -168,9 +168,31 @@ export function getWeatherAtElevation(
   }
 
   const levelData = pressureLevelData[levelIndex];
-  if (!levelData) {
+  if (!levelData || levelData.length === 0) {
     return fallbackValue;
   }
 
-  return levelData[timeIndex] ?? fallbackValue;
+  const value = levelData[timeIndex];
+  return value !== undefined && value !== null ? value : fallbackValue;
+}
+
+/**
+ * Estimate temperature at elevation using standard atmospheric lapse rate
+ * When pressure level data is unavailable
+ */
+export function estimateTempAtElevation(surfaceTemp: number, surfaceElev: number, targetElev: number): number {
+  const elevDiff = targetElev - surfaceElev;
+  const LAPSE_RATE = 6.5; // °C per 1000m
+  return surfaceTemp - (elevDiff / 1000) * LAPSE_RATE;
+}
+
+/**
+ * Estimate wind speed at elevation
+ * Wind generally increases with altitude
+ */
+export function estimateWindAtElevation(surfaceWind: number, surfaceElev: number, targetElev: number): number {
+  const elevDiff = targetElev - surfaceElev;
+  // Wind increases roughly 10% per 1000m
+  const windIncrease = (elevDiff / 1000) * 0.1;
+  return surfaceWind * (1 + windIncrease);
 }

@@ -8,6 +8,8 @@ import {
   calculateWindChill,
   getTimePeriodName,
   calculateSunTimes,
+  estimateTempAtElevation,
+  estimateWindAtElevation,
 } from '../../../../packages/core/src/index';
 import ElevationProfileChart from './ElevationProfileChart';
 
@@ -47,28 +49,48 @@ export default function DetailedForecastTable({
     const days: DayForecast[] = [];
     const dayMap = new Map<string, DayForecast>();
 
+    console.log('Forecast data:', {
+      hoursCount: forecast.hourly.time.length,
+      hasPressureLevels: forecast.pressure_levels.data.temperature.length > 0,
+      pressureLevels: forecast.pressure_levels.levels,
+      selectedPressure: selectedBand.pressureLevel,
+    });
+
     forecast.hourly.time.forEach((timeStr, idx) => {
       const date = new Date(timeStr);
       const dateKey = date.toISOString().split('T')[0] ?? '';
       const hour = date.getHours();
       const period = getTimePeriodName(hour);
 
-      // Get weather at elevation
+      // Get weather at elevation - use estimation if pressure data unavailable
+      const surfaceTemp = forecast.hourly.temperature_2m[idx] ?? 0;
+      const surfaceWind = forecast.hourly.windspeed_10m[idx] ?? 0;
+
+      // Try to get pressure level data first, fall back to estimation
+      const tempFromPressure = getWeatherAtElevation(
+        forecast.pressure_levels.data.temperature,
+        selectedBand.pressureLevel,
+        idx,
+        undefined
+      );
+
+      const windFromPressure = getWeatherAtElevation(
+        forecast.pressure_levels.data.windspeed,
+        selectedBand.pressureLevel,
+        idx,
+        undefined
+      );
+
+      // Use pressure data if available, otherwise estimate based on elevation
       const temp =
-        getWeatherAtElevation(
-          forecast.pressure_levels.data.temperature,
-          selectedBand.pressureLevel,
-          idx,
-          forecast.hourly.temperature_2m[idx]
-        ) ?? forecast.hourly.temperature_2m[idx] ?? 0;
+        tempFromPressure !== undefined
+          ? tempFromPressure
+          : estimateTempAtElevation(surfaceTemp, forecast.elevation, selectedBand.elevation);
 
       const windSpeed =
-        getWeatherAtElevation(
-          forecast.pressure_levels.data.windspeed,
-          selectedBand.pressureLevel,
-          idx,
-          forecast.hourly.windspeed_10m[idx]
-        ) ?? forecast.hourly.windspeed_10m[idx] ?? 0;
+        windFromPressure !== undefined
+          ? windFromPressure
+          : estimateWindAtElevation(surfaceWind, forecast.elevation, selectedBand.elevation);
 
       const periodData: TimePeriodData = {
         hour,
@@ -99,7 +121,17 @@ export default function DetailedForecastTable({
       dayMap.get(dateKey)?.[period].push(periodData);
     });
 
-    dayMap.forEach((day) => days.push(day));
+    dayMap.forEach((day) => {
+      console.log(`Day ${day.date}:`, {
+        AM: day.AM.length,
+        PM: day.PM.length,
+        night: day.night.length,
+        sampleAM: day.AM[0],
+      });
+      days.push(day);
+    });
+
+    console.log('Total days:', days.length);
     return days.slice(0, 6); // Show 6 days like the reference
   }, [forecast, selectedBand]);
 
