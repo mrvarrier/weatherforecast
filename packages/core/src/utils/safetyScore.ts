@@ -119,7 +119,10 @@ export function getBestSummitWindow(
 
   // Find the hour with the highest safety score
   for (let i = 0; i < hourlyConditions.length; i++) {
-    const score = computeSafetyScore(hourlyConditions[i]);
+    const conditions = hourlyConditions[i];
+    if (!conditions) continue;
+
+    const score = computeSafetyScore(conditions);
 
     if (!bestScore || score.score > bestScore.score) {
       bestScore = score;

@@ -127,8 +127,8 @@ export class WeatherService {
       ].join(',');
 
       const pressureLevels = '200,300,400,500,600,700,800,850,925,1000';
-      const pressureLevelParams =
-        'temperature,windspeed,winddirection,geopotential_height,relativehumidity,cloudcover';
+      // Note: Pressure level params available for future use
+      // const pressureLevelParams = 'temperature,windspeed,winddirection,geopotential_height,relativehumidity,cloudcover';
 
       const url = `${baseUrl}?latitude=${latitude}&longitude=${longitude}&hourly=${hourlyParams}&models=${model}&forecast_days=${forecastDays}&timezone=auto`;
 
