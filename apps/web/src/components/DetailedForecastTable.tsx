@@ -7,12 +7,13 @@ import {
   getWindDirectionArrow,
   calculateWindChill,
   getTimePeriodName,
+  calculateSunTimes,
 } from '../../../../packages/core/src/index';
+import ElevationProfileChart from './ElevationProfileChart';
 
 interface DetailedForecastTableProps {
   forecast: ForecastData;
   selectedBand: ElevationBand;
-  peakName: string;
 }
 
 interface TimePeriodData {
@@ -423,9 +424,47 @@ export default function DetailedForecastTable({
                 );
               })}
             </tr>
+
+            {/* Sunrise/Sunset Row */}
+            <tr className="border-t-2 border-slate-300">
+              <td className="sticky left-0 bg-yellow-50 z-10 p-2 text-xs font-semibold text-slate-700 border-r border-slate-200">
+                <div className="flex items-center gap-1">
+                  <span>☀️</span>
+                  <span>Sun</span>
+                </div>
+              </td>
+              {dailyData.map((day) => {
+                const date = new Date(day.date);
+                const sunTimes = calculateSunTimes(forecast.latitude, forecast.longitude, date);
+
+                return (
+                  <>
+                    <td
+                      key={`${day.date}-am-sun`}
+                      className="border border-slate-200 p-1 text-center text-xs bg-yellow-50"
+                      colSpan={3}
+                    >
+                      <div className="flex items-center justify-around">
+                        <div className="flex items-center gap-1">
+                          <span className="text-orange-600">↑</span>
+                          <span className="font-semibold">{sunTimes.sunrise}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-orange-600">↓</span>
+                          <span className="font-semibold">{sunTimes.sunset}</span>
+                        </div>
+                      </div>
+                    </td>
+                  </>
+                );
+              })}
+            </tr>
           </tbody>
         </table>
       </div>
+
+      {/* Elevation Profile Chart */}
+      <ElevationProfileChart forecast={forecast} peakElevation={selectedBand.elevation} />
     </div>
   );
 }

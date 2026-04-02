@@ -450,7 +450,7 @@ export default function PeakDetailPage() {
             </div>
 
             {/* Detailed Forecast Table */}
-            {selectedBand && <DetailedForecastTable forecast={forecast} selectedBand={selectedBand} peakName={peak.name} />}
+            {selectedBand && <DetailedForecastTable forecast={forecast} selectedBand={selectedBand} />}
           </div>
         )}
       </main>
