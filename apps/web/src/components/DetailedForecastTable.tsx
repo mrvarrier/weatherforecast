@@ -49,13 +49,6 @@ export default function DetailedForecastTable({
     const days: DayForecast[] = [];
     const dayMap = new Map<string, DayForecast>();
 
-    console.log('Forecast data:', {
-      hoursCount: forecast.hourly.time.length,
-      hasPressureLevels: forecast.pressure_levels.data.temperature.length > 0,
-      pressureLevels: forecast.pressure_levels.levels,
-      selectedPressure: selectedBand.pressureLevel,
-    });
-
     forecast.hourly.time.forEach((timeStr, idx) => {
       const date = new Date(timeStr);
       const dateKey = date.toISOString().split('T')[0] ?? '';
@@ -121,17 +114,8 @@ export default function DetailedForecastTable({
       dayMap.get(dateKey)?.[period].push(periodData);
     });
 
-    dayMap.forEach((day) => {
-      console.log(`Day ${day.date}:`, {
-        AM: day.AM.length,
-        PM: day.PM.length,
-        night: day.night.length,
-        sampleAM: day.AM[0],
-      });
-      days.push(day);
-    });
+    dayMap.forEach((day) => days.push(day));
 
-    console.log('Total days:', days.length);
     return days.slice(0, 6); // Show 6 days like the reference
   }, [forecast, selectedBand]);
 
