@@ -197,7 +197,7 @@ export default function DetailedForecastTable({
                   </th>
                   <th
                     key={`${day.date}-night`}
-                    className="border-x border-slate-200 bg-white p-1 text-center text-xs font-semibold text-slate-600"
+                    className="border-l-2 border-l-slate-400 border-x border-slate-200 bg-white p-1 text-center text-xs font-semibold text-slate-600"
                   >
                     night
                   </th>
@@ -218,7 +218,7 @@ export default function DetailedForecastTable({
                   <td key={`${day.date}-pm-icon`} className="border border-slate-200 p-2 text-center text-3xl">
                     {getRepresentative(day.PM) && getWeatherCondition(getRepresentative(day.PM)!.weatherCode).icon}
                   </td>
-                  <td key={`${day.date}-night-icon`} className="border border-slate-200 p-2 text-center text-3xl bg-slate-800/5">
+                  <td key={`${day.date}-night-icon`} className="border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-3xl">
                     {getRepresentative(day.night) && getWeatherCondition(getRepresentative(day.night)!.weatherCode).icon}
                   </td>
                 </>
@@ -236,7 +236,7 @@ export default function DetailedForecastTable({
                   <td key={`${day.date}-pm-desc`} className="border border-slate-200 p-2 text-center text-xs">
                     {getRepresentative(day.PM) && getWeatherCondition(getRepresentative(day.PM)!.weatherCode).shortDesc}
                   </td>
-                  <td key={`${day.date}-night-desc`} className="border border-slate-200 p-2 text-center text-xs bg-slate-800/5">
+                  <td key={`${day.date}-night-desc`} className="border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-xs">
                     {getRepresentative(day.night) && getWeatherCondition(getRepresentative(day.night)!.weatherCode).shortDesc}
                   </td>
                 </>
@@ -266,7 +266,7 @@ export default function DetailedForecastTable({
                       </div>
                     )}
                   </td>
-                  <td key={`${day.date}-night-wind`} className="border border-slate-200 p-2 text-center bg-slate-800/5">
+                  <td key={`${day.date}-night-wind`} className="border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center">
                     {getRepresentative(day.night) && (
                       <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-900 text-white font-bold text-sm">
                         {Math.round(getRepresentative(day.night)!.windSpeed)}
@@ -297,7 +297,7 @@ export default function DetailedForecastTable({
                     <td key={`${day.date}-pm-snow`} className="border border-slate-200 p-2 text-center text-sm font-semibold">
                       {avgTemp < 2 && pmSnow > 0 ? Math.round(pmSnow * 10) : '—'}
                     </td>
-                    <td key={`${day.date}-night-snow`} className="border border-slate-200 p-2 text-center text-sm font-semibold bg-slate-800/5">
+                    <td key={`${day.date}-night-snow`} className="border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-semibold">
                       {avgTemp < 2 && nightSnow > 0 ? Math.round(nightSnow * 10) : '—'}
                     </td>
                   </>
@@ -324,7 +324,7 @@ export default function DetailedForecastTable({
                     <td key={`${day.date}-pm-rain`} className="border border-slate-200 p-2 text-center text-sm font-semibold">
                       {avgTemp >= 2 && pmRain > 0 ? Math.round(pmRain) : '—'}
                     </td>
-                    <td key={`${day.date}-night-rain`} className="border border-slate-200 p-2 text-center text-sm font-semibold bg-slate-800/5">
+                    <td key={`${day.date}-night-rain`} className="border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-semibold">
                       {avgTemp >= 2 && nightRain > 0 ? Math.round(nightRain) : '—'}
                     </td>
                   </>
@@ -345,7 +345,7 @@ export default function DetailedForecastTable({
                   <td key={`${day.date}-pm-maxtemp`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${getTempColor(getMaxTemp(day.PM))}`}>
                     {Math.round(getMaxTemp(day.PM))}
                   </td>
-                  <td key={`${day.date}-night-maxtemp`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${getTempColor(getMaxTemp(day.night))} bg-slate-800/5`}>
+                  <td key={`${day.date}-night-maxtemp`} className={`border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-bold ${getTempColor(getMaxTemp(day.night))}`}>
                     {Math.round(getMaxTemp(day.night))}
                   </td>
                 </>
@@ -365,7 +365,7 @@ export default function DetailedForecastTable({
                   <td key={`${day.date}-pm-mintemp`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${getTempColor(getMinTemp(day.PM))}`}>
                     {Math.round(getMinTemp(day.PM))}
                   </td>
-                  <td key={`${day.date}-night-mintemp`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${getTempColor(getMinTemp(day.night))} bg-slate-800/5`}>
+                  <td key={`${day.date}-night-mintemp`} className={`border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-bold ${getTempColor(getMinTemp(day.night))}`}>
                     {Math.round(getMinTemp(day.night))}
                   </td>
                 </>
@@ -390,7 +390,7 @@ export default function DetailedForecastTable({
                     <td key={`${day.date}-pm-chill`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${pmData ? getTempColor(calculateWindChill(pmData.temp, pmData.windSpeed)) : ''}`}>
                       {pmData && Math.round(calculateWindChill(pmData.temp, pmData.windSpeed))}
                     </td>
-                    <td key={`${day.date}-night-chill`} className={`border border-slate-200 p-2 text-center text-sm font-bold ${nightData ? getTempColor(calculateWindChill(nightData.temp, nightData.windSpeed)) : ''} bg-slate-800/5`}>
+                    <td key={`${day.date}-night-chill`} className={`border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-sm font-bold ${nightData ? getTempColor(calculateWindChill(nightData.temp, nightData.windSpeed)) : ''}`}>
                       {nightData && Math.round(calculateWindChill(nightData.temp, nightData.windSpeed))}
                     </td>
                   </>
@@ -416,7 +416,7 @@ export default function DetailedForecastTable({
                     <td key={`${day.date}-pm-freeze`} className="border border-slate-200 p-2 text-center text-xs">
                       {pmData && pmData.freezingLevel.toLocaleString()}
                     </td>
-                    <td key={`${day.date}-night-freeze`} className="border border-slate-200 p-2 text-center text-xs bg-slate-800/5">
+                    <td key={`${day.date}-night-freeze`} className="border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-xs">
                       {nightData && nightData.freezingLevel.toLocaleString()}
                     </td>
                   </>
@@ -449,7 +449,7 @@ export default function DetailedForecastTable({
                     <td key={`${day.date}-pm-cloud`} className="border border-slate-200 p-2 text-center text-xs">
                       {pmData && estimateCloudBase(pmData.cloudCover)}
                     </td>
-                    <td key={`${day.date}-night-cloud`} className="border border-slate-200 p-2 text-center text-xs bg-slate-800/5">
+                    <td key={`${day.date}-night-cloud`} className="border-l-2 border-l-slate-400 border border-slate-200 p-2 text-center text-xs">
                       {nightData && estimateCloudBase(nightData.cloudCover)}
                     </td>
                   </>
