@@ -24,6 +24,7 @@ export default function PeakDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedElevationIndex, setSelectedElevationIndex] = useState(2); // Default to Summit
+  const [weatherModel, setWeatherModel] = useState<'best_match' | 'ecmwf_ifs04'>('ecmwf_ifs04');
 
   const peak = FEATURED_PEAKS.find((p) => p.id === id);
   const elevationBands: ElevationBand[] = peak ? calculateElevationBands(peak.elevation) : [];
@@ -37,6 +38,7 @@ export default function PeakDetailPage() {
         setLoading(true);
         setError(null);
         const data = await weatherService.fetchForecast(peak.latitude, peak.longitude, {
+          model: weatherModel,
           forecastDays: 16,
         });
         setForecast(data);
@@ -48,7 +50,7 @@ export default function PeakDetailPage() {
     };
 
     fetchWeather();
-  }, [peak]);
+  }, [peak, weatherModel]);
 
   if (!peak) {
     return (
@@ -183,6 +185,46 @@ export default function PeakDetailPage() {
                 </span>
               </div>
               <p className="text-sm text-slate-500 mt-2">{peak.range}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Weather Model Selector */}
+        <div className="mb-6">
+          <div className="card p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1">
+                  Weather Model
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {weatherModel === 'ecmwf_ifs04'
+                    ? 'ECMWF IFS (Professional, like Mountain-Forecast)'
+                    : 'Best Match (Multi-model ensemble)'}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setWeatherModel('ecmwf_ifs04')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    weatherModel === 'ecmwf_ifs04'
+                      ? 'bg-green-600 text-white shadow-md'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  ECMWF IFS
+                </button>
+                <button
+                  onClick={() => setWeatherModel('best_match')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    weatherModel === 'best_match'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  Best Match
+                </button>
+              </div>
             </div>
           </div>
         </div>
