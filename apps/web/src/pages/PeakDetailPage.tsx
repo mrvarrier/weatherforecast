@@ -12,7 +12,7 @@ import {
   formatPressure,
   formatVisibility,
 } from '../../../../packages/core/src/index';
-import type { ForecastData, HourlyConditions, SafetyScore } from '../../../../packages/core/src/index';
+import type { ForecastData, SafetyScore } from '../../../../packages/core/src/index';
 
 export default function PeakDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -57,7 +57,7 @@ export default function PeakDetailPage() {
   }
 
   // Get current conditions from first hourly data point
-  const getCurrentConditions = (): HourlyConditions | null => {
+  const getCurrentConditions = () => {
     if (!forecast?.hourly) return null;
 
     const now = new Date();
@@ -72,23 +72,32 @@ export default function PeakDetailPage() {
       time: forecast.hourly.time[currentHourIndex] ?? '',
       temperature: forecast.hourly.temperature_2m[currentHourIndex] ?? 0,
       apparentTemperature: forecast.hourly.apparent_temperature[currentHourIndex] ?? 0,
-      windSpeed: forecast.hourly.wind_speed_10m[currentHourIndex] ?? 0,
-      windGusts: forecast.hourly.wind_gusts_10m[currentHourIndex] ?? 0,
-      windDirection: forecast.hourly.wind_direction_10m[currentHourIndex] ?? 0,
+      windSpeed: forecast.hourly.windspeed_10m[currentHourIndex] ?? 0,
+      windGusts: forecast.hourly.windgusts_10m[currentHourIndex] ?? 0,
+      windDirection: forecast.hourly.winddirection_10m[currentHourIndex] ?? 0,
       precipitation: forecast.hourly.precipitation[currentHourIndex] ?? 0,
       precipitationProbability: forecast.hourly.precipitation_probability[currentHourIndex] ?? 0,
-      weatherCode: forecast.hourly.weather_code[currentHourIndex] ?? 0,
-      cloudCover: forecast.hourly.cloud_cover[currentHourIndex] ?? 0,
+      weatherCode: forecast.hourly.weathercode[currentHourIndex] ?? 0,
+      cloudCover: forecast.hourly.cloudcover[currentHourIndex] ?? 0,
       visibility: forecast.hourly.visibility[currentHourIndex] ?? 10000,
       surfacePressure: forecast.hourly.surface_pressure[currentHourIndex] ?? 1013,
-      freezingLevel: forecast.hourly.freezing_level_height[currentHourIndex] ?? 0,
+      freezingLevel: forecast.hourly.freezinglevel_height[currentHourIndex] ?? 0,
       cape: forecast.hourly.cape[currentHourIndex] ?? 0,
     };
   };
 
   const currentConditions = getCurrentConditions();
   const currentSafety: SafetyScore | null = currentConditions
-    ? computeSafetyScore(currentConditions, peak.elevation)
+    ? computeSafetyScore({
+        windSpeed: currentConditions.windSpeed,
+        precipProbability: currentConditions.precipitationProbability,
+        visibility: currentConditions.visibility,
+        feelsLike: currentConditions.apparentTemperature,
+        cape: currentConditions.cape,
+        freezingLevel: currentConditions.freezingLevel,
+        elevation: peak.elevation,
+        timestamp: currentConditions.time,
+      })
     : null;
 
   return (
@@ -199,10 +208,10 @@ export default function PeakDetailPage() {
                     <div>
                       <p className="text-xs text-slate-500 mb-0.5">Temperature</p>
                       <p className="text-lg font-semibold text-slate-900">
-                        {formatTemp(currentConditions.temperature, 'metric')}
+                        {formatTemp(currentConditions.temperature, 'celsius')}
                       </p>
                       <p className="text-xs text-slate-500">
-                        Feels like {formatTemp(currentConditions.apparentTemperature, 'metric')}
+                        Feels like {formatTemp(currentConditions.apparentTemperature, 'celsius')}
                       </p>
                     </div>
                   </div>
@@ -214,10 +223,10 @@ export default function PeakDetailPage() {
                     <div>
                       <p className="text-xs text-slate-500 mb-0.5">Wind Speed</p>
                       <p className="text-lg font-semibold text-slate-900">
-                        {formatWind(currentConditions.windSpeed, 'metric')}
+                        {formatWind(currentConditions.windSpeed, 'kmh')}
                       </p>
                       <p className="text-xs text-slate-500">
-                        Gusts {formatWind(currentConditions.windGusts, 'metric')}
+                        Gusts {formatWind(currentConditions.windGusts, 'kmh')}
                       </p>
                     </div>
                   </div>
@@ -232,7 +241,7 @@ export default function PeakDetailPage() {
                         {currentConditions.precipitationProbability}%
                       </p>
                       <p className="text-xs text-slate-500">
-                        {formatPrecip(currentConditions.precipitation, 'metric')}
+                        {formatPrecip(currentConditions.precipitation, 'mm')}
                       </p>
                     </div>
                   </div>
@@ -256,7 +265,7 @@ export default function PeakDetailPage() {
                     <div>
                       <p className="text-xs text-slate-500 mb-0.5">Visibility</p>
                       <p className="text-lg font-semibold text-slate-900">
-                        {formatVisibility(currentConditions.visibility, 'metric')}
+                        {formatVisibility(currentConditions.visibility, 'km')}
                       </p>
                     </div>
                   </div>
@@ -268,7 +277,7 @@ export default function PeakDetailPage() {
                     <div>
                       <p className="text-xs text-slate-500 mb-0.5">Pressure</p>
                       <p className="text-lg font-semibold text-slate-900">
-                        {formatPressure(currentConditions.surfacePressure, 'metric')}
+                        {formatPressure(currentConditions.surfacePressure, 'hpa')}
                       </p>
                     </div>
                   </div>
@@ -327,11 +336,11 @@ export default function PeakDetailPage() {
                         </span>
                       </div>
                     )}
-                    {currentSafety.factors.coldPenalty > 0 && (
+                    {currentSafety.factors.temperaturePenalty > 0 && (
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-600">Cold Penalty</span>
+                        <span className="text-slate-600">Temperature Penalty</span>
                         <span className="font-semibold text-red-600">
-                          -{currentSafety.factors.coldPenalty}
+                          -{currentSafety.factors.temperaturePenalty}
                         </span>
                       </div>
                     )}
